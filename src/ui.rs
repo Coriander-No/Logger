@@ -1,5 +1,6 @@
 use egui::{Context, Layout, RichText, ScrollArea, Separator, TextEdit, TopBottomPanel, Ui, Widget, Align, TextBuffer};
 // use crate::syntax::{get_syntax_for_file, get_theme_formats, highlight_line};
+use egui::Color32;
 use crate::Logger::{LoggerState,Direction};
 use std::time::Duration;
 use crate::config::LoggerConfig;
@@ -54,19 +55,26 @@ pub fn render_ui(ctx: &Context, state: &mut LoggerState, config: &mut LoggerConf
 
     // 渲染主编辑区域
     egui::CentralPanel::default().show(ctx, |ui|{
-        egui::SidePanel::left("Line Number")
-        .resizable(false)
-        .default_width(15.0)
-        .show(ctx, |ui|{
-            ui.vertical_centered(|ui|{
-                ui.label("number");
-            });
-        });
-        // 右侧文本编辑区
-        egui::CentralPanel::default().show(ctx, |ui|{
-            let mut text = String::new();
-            ui.add(egui::TextEdit::multiline(&mut text)          // 设置默认显示行数
-                .desired_width(f32::INFINITY));
+        // 滚动区域
+        egui::ScrollArea::both()
+        .show(ui, |ui|{
+            let mut text_buffer = String::new();
+            for line in state.lines.iter(){
+                let line_str: &str = line.as_str();
+                text_buffer.push_str(line_str);
+                text_buffer.push('\n');
+            }
+
+            let mut text_edit = egui::TextEdit::multiline(&mut text_buffer)          // 设置默认显示行数
+                    .font(egui::TextStyle::Monospace) // for cursor height
+                    .code_editor()
+                    .desired_rows((state.lines.len() as u32).try_into().unwrap())
+                    .lock_focus(true)
+                    .background_color(Color32::from_rgba_unmultiplied(240, 240, 240, 0))
+                    .desired_width(f32::INFINITY);
+            if text_edit.ui(ui).changed() {
+                state.lines = text_buffer.lines().map(|line| line.to_string()).collect();
+            }
         });
     });
 }

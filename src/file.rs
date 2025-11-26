@@ -1,14 +1,12 @@
 use rfd::FileDialog;
 use std::path::PathBuf;
 use std::fs;
-use crate::Logger::{LoggerState, LoggerCursor, LoggerSelection};
+use crate::Logger::{LoggerState};
 use crate::error::EditorError;
 
 // 新建文件
 pub fn new_file(state: &mut LoggerState) {
     state.lines = vec!["".to_string()];
-    state.cursor = LoggerCursor::new(0, 0);
-    state.selection = LoggerSelection::default();
     state.file_path = None;
 }
 
@@ -21,8 +19,6 @@ pub fn open_file(state: &mut LoggerState) -> Result<(), EditorError> {
         let lines = content.split('\n').map(|s| s.to_string()).collect();
         // 更新编辑器状态
         state.lines = lines;
-        state.cursor = LoggerCursor::new(0, 0);
-        state.selection = LoggerSelection::default();
         state.file_path = Some(path);
     }
     Ok(())
